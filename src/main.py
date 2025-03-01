@@ -20,7 +20,7 @@ async def root():
 async def get_characters():
     data = pd.read_csv(DATA_PATH / "characters.csv")
 
-    return data.to_dict()
+    return data["Character Name"].to_dict()
 
 
 @app.get("/characters/{name}")
@@ -37,18 +37,35 @@ async def get_characters_by_name(name):
 
 @app.post("/create_character")
 async def create_character(body: character.Character):
-    data = pd.read_csv(DATA_PATH / "characters.csv")
-    name = body.character_name
-    quote = body.quote
+    try:
+        data = pd.read_csv(DATA_PATH / "characters.csv")
+        name = body.character_name
+        quote = body.quote
+    except Exception as e:
+        return {
+            "message": "Something went wrong with the data"
+        }
 
-    new_data = pd.concat(
-        [data, pd.DataFrame({"Character Name": name, "Quote": quote})], ignore_index=True
-    )
-    
-    new_data.to_csv(DATA_PATH / "characters.csv", index=False)
+    try:
+        data = pd.concat(
+            [data, pd.DataFrame({"Character Name": [name], "Quote": [quote]})],
+            ignore_index=True,
+        )
 
-    print(new_data.describe())
+        data.to_csv(DATA_PATH / "characters.csv", index=False)
+    except Exception as e:
+        return {
+        "message": "Something went wrong",
+    }
 
     return {
         "message": "Character created successfully",
     }
+
+
+@app.get("/quotes")
+async def get_quotes():
+    # Get a random quote
+    data = pd.read_csv(DATA_PATH / "characters.csv")
+
+    return data["Quote"].sample().to_dict()
