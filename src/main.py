@@ -71,4 +71,4 @@ async def get_quotes():
 
     quote = data["Quote"].sample()
 
-    return {"quote": quote.values}
+    return quote.to_dict()
